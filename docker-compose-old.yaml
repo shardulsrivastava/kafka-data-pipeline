@@ -1,0 +1,79 @@
+version: '3.7'
+
+services:
+
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    ports:
+      - '2181:2181'
+    volumes:
+      - "zookeeper_data:/bitnami"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - default
+  
+  kafka:
+    image: 'bitnami/kafka:latest'
+    ports:
+      - '9092:9092'
+    volumes:
+      - "kafka_data:/bitnami"
+    environment:
+      # - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      # - ALLOW_PLAINTEXT_LISTENER=yes
+      # - KAFKA_LISTENERS=PLAINTEXT://:9092
+      # - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+    networks:
+      - default
+    # healthcheck:
+    #   test: ["CMD", "kafka-topics.sh", "--list", "--zookeeper", "zookeeper:2181"]
+    #   interval: 5s
+    #   timeout: 10s
+    #   retries: 5
+
+  data-generator:
+    image: data-generator
+    build:
+      context: data-generator
+      dockerfile: Dockerfile
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - default
+
+  # data-aggregator:
+  #   image: data-aggregator
+  #   build:
+  #     context: data-aggregator
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     - default
+  #   depends_on:
+  #     - "data-generator"
+
+  # postgres:
+  #   image: postgres:13
+  #   environment:
+  #     POSTGRES_PASSWORD: "postgres"
+  #     POSTGRES_USER: "postgres"
+  #     POSTGRES_DB: "tgam"
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - default
+
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local
