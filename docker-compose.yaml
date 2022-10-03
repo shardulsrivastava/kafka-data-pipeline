@@ -36,39 +36,29 @@ services:
     build:
       context: data-generator
       dockerfile: Dockerfile
+    environment:
+      BOOTSTRAP_SERVER_URL: "kafka:9092"
     depends_on:
       kafka:
         condition: service_healthy
-    networks:
-      - default
 
-  # data-aggregator:
-  #   image: data-aggregator
-  #   build:
-  #     context: data-aggregator
-  #     dockerfile: Dockerfile
-  #   networks:
-  #     - default
-  #   depends_on:
-  #     - "data-generator"
+  data-aggregator:
+    image: data-aggregator
+    container_name: data-aggregator
+    build:
+      context: data-aggregator
+      dockerfile: Dockerfile
+    environment:
+      BOOTSTRAP_SERVER_URL: "kafka:9092"
+    depends_on:
+      kafka:
+        condition: service_healthy
 
-  # postgres:
-  #   image: postgres:13
-  #   environment:
-  #     POSTGRES_PASSWORD: "postgres"
-  #     POSTGRES_USER: "postgres"
-  #     POSTGRES_DB: "tgam"
-  #   ports:
-  #     - "5432:5432"
-  #   networks:
-  #     - default
-
-# networks:
-#   default:
-#     driver: bridge
-
-# volumes:
-#   zookeeper_data:
-#     driver: local
-#   kafka_data:
-#     driver: local
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "tgam"
+    ports:
+      - "5432:5432"

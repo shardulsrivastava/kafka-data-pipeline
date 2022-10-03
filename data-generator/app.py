@@ -1,9 +1,16 @@
 from kafka import KafkaProducer
 import json
+import time
+import os
+
+BOOTSTRAP_SERVER_URL = os.environ.get("BOOTSTRAP_SERVER_URL", "kafka:9092")
+
 
 def generate_data():
-    producer = KafkaProducer(bootstrap_servers="kafka:9092",value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    producer = KafkaProducer(bootstrap_servers=BOOTSTRAP_SERVER_URL,
+                             value_serializer=lambda v: json.dumps(v).encode('utf-8'))
     while True:
+        print("Generating Stock data")
         stock_json_message = {}
         ticker_data = []
         amazon_stock_data = {}
@@ -21,6 +28,8 @@ def generate_data():
         stock_json_message["tickers"] = ticker_data
         print(json.dumps(stock_json_message))
         producer.send('stocks', stock_json_message)
+        time.sleep(1)
+
 
 if __name__ == '__main__':
     generate_data()
